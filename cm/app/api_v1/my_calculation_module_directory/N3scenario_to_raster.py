@@ -9,15 +9,15 @@ This script has been created in the context of the Hotmaps EU project.
 
 import numpy as np
 import time
-
+import os
 
 
 
 TARGET_RESOLUTION = 100
 
-from CM_intern.common_modules.exportLayerDict import export_layer as expLyr
-import CM_intern.CEDM.modules.cyf.create_density_map as CDM
-import CM_intern.common_modules.cliprasterlayer as CRL
+from helper_functions.exportLayerDict import export_layer as expLyr
+import helper_functions.cyf.create_density_map as CDM
+import helper_functions.cliprasterlayer as CRL
 
 
 def getData(fn, geotransform_obj, size, data_type):
@@ -46,7 +46,8 @@ def CalcEffectsAtRasterLevel(NUTS_RESULTS_GFA_BASE
                             , GFA_RES
                             , geotransform_obj, size
                             , csv_data_table
-                            , fn_res_bgf_intial):
+                            , fn_res_bgf_intial
+                            , output_path="./output/"):
     
     """
     idx = NUTS_id < 1
@@ -55,6 +56,8 @@ def CalcEffectsAtRasterLevel(NUTS_RESULTS_GFA_BASE
     NUTS_id -= 1
     """
 
+    if os.path.exists(output_path) == False:
+        os.mkdir(output_path)
     
     csv_results = np.zeros((np.max(LAU2_id)+1, 100), dtype="f4")
     header = {}
@@ -291,7 +294,8 @@ def CalcEffectsAtRasterLevel(NUTS_RESULTS_GFA_BASE
             
         #Export IMAGE
         SaveLayerDict = {}
-        fn_out_fp = "./output/Energy_%s.tif" % bt_type
+
+        fn_out_fp = "%s/Energy_%s.tif" % (output_path, bt_type)
         SaveLayerDict["AA"] =   (fn_out_fp, geotransform_obj
                                             , "f4", energy_future , 0)
         SaveLayerDict = expLyr(SaveLayerDict)
@@ -375,7 +379,10 @@ def CalcEffectsAtRasterLevel(NUTS_RESULTS_GFA_BASE
     csv_results[:,col] = TABLE_RESULTS_NUTS[NUTS3_ID,1]
     
     """     
-    fn_out_csv = "./output/Results_table.csv"
+    
+    
+    
+    fn_out_csv = "%s/Results_table.csv" % output_path
     notempty = csv_results[:, 1] > 0.1                   
     header_ = ""
     for k in range(csv_results.shape[1]):
